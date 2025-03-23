@@ -14,6 +14,9 @@ const rounds = useLocalStorage<Round[]>(key("rounds"), []);
 const scores = useLocalStorage(key("scores"), ["", "", "", ""]);
 
 function addScores() {
+	const hasNan = scores.value.some((score) => isNaN(parseInt(score)));
+	if (hasNan) return;
+
 	rounds.value.push({
 		id: rounds.value.length + 1,
 		scores: [
@@ -57,9 +60,10 @@ const formatter = Intl.NumberFormat(navigator.languages, {
 
 <template>
 	<div class="container mx-auto grid max-w-md gap-4 px-4 py-4">
-		<button type="button" @click="resetGame" class="btn block w-full">
+		<button type="button" @click="resetGame" class="btn">
 			Resetează jocul
 		</button>
+
 		<div class="border-base-content/5 bg-base-100 rounded border">
 			<table class="table text-center">
 				<thead class="bg-base-200 text-xs">
