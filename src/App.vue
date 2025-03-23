@@ -49,6 +49,10 @@ function resetGame() {
 	rounds.value = [];
 	scores.value = ["", "", "", ""];
 }
+
+const formatter = Intl.NumberFormat(navigator.languages, {
+	signDisplay: "always",
+});
 </script>
 
 <template>
@@ -75,7 +79,7 @@ function resetGame() {
 							<div class="flex items-center justify-center gap-1">
 								{{ sumScoreUntilRound(0, round.id) }}
 								<span class="badge badge-xs badge-ghost opacity-50">
-									+{{ round.scores[0] }}
+									{{ formatter.format(round.scores[0]) }}
 								</span>
 							</div>
 						</td>
@@ -83,7 +87,7 @@ function resetGame() {
 							<div class="flex items-center justify-center gap-1">
 								{{ sumScoreUntilRound(1, round.id) }}
 								<span class="badge badge-xs badge-ghost opacity-50">
-									+{{ round.scores[1] }}
+									{{ formatter.format(round.scores[1]) }}
 								</span>
 							</div>
 						</td>
@@ -91,7 +95,7 @@ function resetGame() {
 							<div class="flex items-center justify-center gap-1">
 								{{ sumScoreUntilRound(2, round.id) }}
 								<span class="badge badge-xs badge-ghost opacity-50">
-									+{{ round.scores[2] }}
+									{{ formatter.format(round.scores[2]) }}
 								</span>
 							</div>
 						</td>
@@ -99,7 +103,7 @@ function resetGame() {
 							<div class="flex items-center justify-center gap-1">
 								{{ sumScoreUntilRound(3, round.id) }}
 								<span class="badge badge-xs badge-ghost opacity-50">
-									+{{ round.scores[3] }}
+									{{ formatter.format(round.scores[3]) }}
 								</span>
 							</div>
 						</td>
