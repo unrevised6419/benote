@@ -8,7 +8,7 @@ type Round = {
 	scores: Scores;
 };
 
-const key = (id: string) => `wolverine4918:${id}`;
+const key = (id: string) => `wolverine3819:${id}`;
 
 const rounds = useLocalStorage<Round[]>(key("rounds"), []);
 const scores = useLocalStorage(key("scores"), ["", "", "", ""]);
