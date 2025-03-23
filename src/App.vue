@@ -14,17 +14,18 @@ const rounds = useLocalStorage<Round[]>(key("rounds"), []);
 const scores = useLocalStorage(key("scores"), ["", "", "", ""]);
 
 function addScores() {
-	const hasNan = scores.value.some((score) => isNaN(parseInt(score)));
-	if (hasNan) return;
+	const newScores: Scores = [
+		parseInt(scores.value[0] || "0"),
+		parseInt(scores.value[1] || "0"),
+		parseInt(scores.value[2] || "0"),
+		parseInt(scores.value[3] || "0"),
+	];
+
+	if (newScores.some((score) => Number.isNaN(score))) return;
 
 	rounds.value.push({
 		id: rounds.value.length + 1,
-		scores: [
-			parseInt(scores.value[0] || "0"),
-			parseInt(scores.value[1] || "0"),
-			parseInt(scores.value[2] || "0"),
-			parseInt(scores.value[3] || "0"),
-		],
+		scores: newScores,
 	});
 	scores.value = ["", "", "", ""];
 }
