@@ -123,6 +123,7 @@ function resetGame() {
 									type="button"
 									@click="removeRound(rounds[rounds.length - 1].id)"
 									class="btn btn-xs"
+									:disabled="rounds.length === 0"
 								>
 									Șterge ultima rundă
 								</button>
