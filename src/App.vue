@@ -1,27 +1,90 @@
 <script setup lang="ts">
 import { useLocalStorage } from "@vueuse/core";
-
-type Scores = [number, number, number, number];
-
-type Round = {
-	id: number;
-	scores: Scores;
-};
-
-const key = (id: string) => `wolverine3819:${id}`;
+import {
+	type Round,
+	key,
+	type Score,
+	isBolt,
+	isBoltScore,
+	type Scores,
+} from "./utils";
+import Cell from "./Cell.vue";
 
 const rounds = useLocalStorage<Round[]>(key("rounds"), []);
-const scores = useLocalStorage(key("scores"), ["", "", "", ""]);
+const scores = useLocalStorage<[string, string, string, string]>(
+	key("scores"),
+	["", "", "", ""],
+);
+
+function valueToScore(index: 0 | 1 | 2 | 3): Score {
+	const scoreIsBolt = isBolt(scores.value[index]);
+	const lastRound = rounds.value[rounds.value.length - 1];
+	const lastRoundTotal = lastRound ? lastRound.scores[index].total : 0;
+
+	if (!scoreIsBolt) {
+		const value = Number(scores.value[index] || "0");
+		return {
+			type: "normal",
+			total: lastRoundTotal + value,
+			delta: value,
+		};
+	}
+
+	const lastBoltScore = rounds.value
+		.findLast((round) => isBoltScore(round.scores[index]))
+		?.scores.find(isBoltScore);
+
+	if (!lastBoltScore || lastBoltScore.delta === 3) {
+		return {
+			type: "bolt",
+			total: lastRoundTotal,
+			delta: 1,
+		};
+	}
+
+	if (lastBoltScore.delta === 1) {
+		return {
+			type: "bolt",
+			total: lastRoundTotal,
+			delta: 2,
+		};
+	}
+
+	if (lastBoltScore.delta === 2) {
+		return {
+			type: "bolt",
+			total: lastRoundTotal - 10,
+			delta: 3,
+		};
+	}
+
+	alert("Invalid bolt score");
+	throw new Error("Invalid bolt score");
+}
 
 function addScores() {
-	const newScores: Scores = [
-		parseInt(scores.value[0] || "0"),
-		parseInt(scores.value[1] || "0"),
-		parseInt(scores.value[2] || "0"),
-		parseInt(scores.value[3] || "0"),
-	];
+	const boltCount = scores.value.filter(isBolt).length;
 
-	if (newScores.some((score) => Number.isNaN(score))) return;
+	if (boltCount > 1) {
+		alert("Prea multe bolturi");
+		return;
+	}
+
+	const invalidScores = scores.value.filter(
+		(s) => !isBolt(s) && Number.isNaN(Number(s)),
+	).length;
+
+	if (invalidScores > 0) {
+		alert("Scoruri invalide");
+		return;
+	}
+
+	const newScores: Scores = [
+		valueToScore(0),
+		valueToScore(1),
+		valueToScore(2),
+		valueToScore(3),
+	];
 
 	rounds.value.push({
 		id: rounds.value.length + 1,
@@ -30,22 +93,11 @@ function addScores() {
 	scores.value = ["", "", "", ""];
 }
 
-function removeRound(id: number) {
+function removeRound(id: number | undefined) {
 	if (rounds.value.length === 0) return;
 	if (!confirm("Sigur?")) return;
 	const index = rounds.value.findIndex((round) => round.id === id);
 	rounds.value.splice(index, 1);
-}
-
-function sumScoreUntilRound(index: number, roundId: number) {
-	const roundIndex = rounds.value.findIndex((round) => round.id === roundId);
-	return rounds.value
-		.slice(0, roundIndex + 1)
-		.reduce((acc, round) => acc + round.scores[index], 0);
-}
-
-function sumScore(index: number) {
-	return rounds.value.reduce((acc, round) => acc + round.scores[index], 0);
 }
 
 function resetGame() {
@@ -53,10 +105,6 @@ function resetGame() {
 	rounds.value = [];
 	scores.value = ["", "", "", ""];
 }
-
-const formatter = Intl.NumberFormat(navigator.languages, {
-	signDisplay: "always",
-});
 </script>
 
 <template>
@@ -81,36 +129,16 @@ const formatter = Intl.NumberFormat(navigator.languages, {
 					</tr>
 					<tr v-for="round in rounds" :key="round.id" class="list-row">
 						<td>
-							<div class="flex items-center justify-center gap-1">
-								{{ sumScoreUntilRound(0, round.id) }}
-								<span class="badge badge-xs badge-ghost opacity-50">
-									{{ formatter.format(round.scores[0]) }}
-								</span>
-							</div>
+							<Cell :score="round.scores[0]" />
 						</td>
 						<td>
-							<div class="flex items-center justify-center gap-1">
-								{{ sumScoreUntilRound(1, round.id) }}
-								<span class="badge badge-xs badge-ghost opacity-50">
-									{{ formatter.format(round.scores[1]) }}
-								</span>
-							</div>
+							<Cell :score="round.scores[1]" />
 						</td>
 						<td>
-							<div class="flex items-center justify-center gap-1">
-								{{ sumScoreUntilRound(2, round.id) }}
-								<span class="badge badge-xs badge-ghost opacity-50">
-									{{ formatter.format(round.scores[2]) }}
-								</span>
-							</div>
+							<Cell :score="round.scores[2]" />
 						</td>
 						<td>
-							<div class="flex items-center justify-center gap-1">
-								{{ sumScoreUntilRound(3, round.id) }}
-								<span class="badge badge-xs badge-ghost opacity-50">
-									{{ formatter.format(round.scores[3]) }}
-								</span>
-							</div>
+							<Cell :score="round.scores[3]" />
 						</td>
 					</tr>
 				</tbody>
@@ -119,18 +147,26 @@ const formatter = Intl.NumberFormat(navigator.languages, {
 						<th colspan="4">
 							<div class="flex items-center justify-between">
 								<div class="inline-flex gap-1">
-									<span>{{ sumScore(0) }}</span>
+									<span>
+										{{ rounds[rounds.length - 1]?.scores[0].total ?? 0 }}
+									</span>
 									<span>/</span>
-									<span>{{ sumScore(1) }}</span>
+									<span>
+										{{ rounds[rounds.length - 1]?.scores[1].total ?? 0 }}
+									</span>
 									<span>/</span>
-									<span>{{ sumScore(2) }}</span>
+									<span>
+										{{ rounds[rounds.length - 1]?.scores[2].total ?? 0 }}
+									</span>
 									<span>/</span>
-									<span>{{ sumScore(3) }}</span>
+									<span>
+										{{ rounds[rounds.length - 1]?.scores[3].total ?? 0 }}
+									</span>
 								</div>
 
 								<button
 									type="button"
-									@click="removeRound(rounds[rounds.length - 1].id)"
+									@click="removeRound(rounds[rounds.length - 1]?.id)"
 									class="btn btn-xs"
 									:disabled="rounds.length === 0"
 								>
@@ -144,28 +180,35 @@ const formatter = Intl.NumberFormat(navigator.languages, {
 		</div>
 
 		<form @submit.prevent="addScores" class="grid gap-4">
-			<div class="join">
-				<input
-					v-model="scores[0]"
-					class="input join-item focus:z-10"
-					placeholder="#1"
-				/>
-				<input
-					v-model="scores[1]"
-					class="input join-item focus:z-10"
-					placeholder="#2"
-				/>
-				<input
-					v-model="scores[2]"
-					class="input join-item focus:z-10"
-					placeholder="#3"
-				/>
-				<input
-					v-model="scores[3]"
-					class="input join-item focus:z-10"
-					placeholder="#4"
-				/>
-			</div>
+			<fieldset class="fieldset">
+				<div class="join">
+					<input
+						v-model="scores[0]"
+						class="input join-item focus:z-10"
+						placeholder="#1"
+					/>
+					<input
+						v-model="scores[1]"
+						class="input join-item focus:z-10"
+						placeholder="#2"
+					/>
+					<input
+						v-model="scores[2]"
+						class="input join-item focus:z-10"
+						placeholder="#3"
+					/>
+					<input
+						v-model="scores[3]"
+						class="input join-item focus:z-10"
+						placeholder="#4"
+					/>
+				</div>
+				<p class="fieldset-label">
+					<kbd class="kbd kbd-xs">b</kbd>
+					<kbd class="kbd kbd-xs">bt</kbd>
+					sau <kbd class="kbd kbd-xs">bolt</kbd> pentru bolt
+				</p>
+			</fieldset>
 
 			<button type="submit" class="btn block w-full">Adaugă</button>
 		</form>
