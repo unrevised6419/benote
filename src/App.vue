@@ -186,21 +186,25 @@ function resetGame() {
 						v-model="scores[0]"
 						class="input join-item focus:z-10"
 						placeholder="#1"
+						inputmode="numeric"
 					/>
 					<input
 						v-model="scores[1]"
 						class="input join-item focus:z-10"
 						placeholder="#2"
+						inputmode="numeric"
 					/>
 					<input
 						v-model="scores[2]"
 						class="input join-item focus:z-10"
 						placeholder="#3"
+						inputmode="numeric"
 					/>
 					<input
 						v-model="scores[3]"
 						class="input join-item focus:z-10"
 						placeholder="#4"
+						inputmode="numeric"
 					/>
 				</div>
 				<p class="fieldset-label">
