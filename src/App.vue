@@ -9,12 +9,15 @@ import {
 	type Scores,
 } from "./utils";
 import Cell from "./Cell.vue";
+import { computed } from "vue";
 
 const rounds = useLocalStorage<Round[]>(key("rounds"), []);
 const scores = useLocalStorage<[string, string, string, string]>(
 	key("scores"),
 	["", "", "", ""],
 );
+const textKeyboard = useLocalStorage<boolean>(key("textKeyboard"), false);
+const inputMode = computed(() => (textKeyboard.value ? "text" : "numeric"));
 
 function valueToScore(index: 0 | 1 | 2 | 3): Score {
 	const scoreIsBolt = isBolt(scores.value[index]);
@@ -179,6 +182,18 @@ function resetGame() {
 			</table>
 		</div>
 
+		<div class="flex items-center justify-between">
+			<label class="inline-flex gap-1 text-xs">
+				<input
+					type="checkbox"
+					v-model="textKeyboard"
+					class="toggle toggle-xs"
+				/>
+				<kbd v-if="textKeyboard" class="kbd kbd-xs">ABC</kbd>
+				<kbd v-else class="kbd kbd-xs">123</kbd>
+			</label>
+		</div>
+
 		<form @submit.prevent="addScores" class="grid gap-4">
 			<fieldset class="fieldset">
 				<div class="join">
@@ -186,25 +201,25 @@ function resetGame() {
 						v-model="scores[0]"
 						class="input join-item focus:z-10"
 						placeholder="#1"
-						inputmode="numeric"
+						:inputmode="inputMode"
 					/>
 					<input
 						v-model="scores[1]"
 						class="input join-item focus:z-10"
 						placeholder="#2"
-						inputmode="numeric"
+						:inputmode="inputMode"
 					/>
 					<input
 						v-model="scores[2]"
 						class="input join-item focus:z-10"
 						placeholder="#3"
-						inputmode="numeric"
+						:inputmode="inputMode"
 					/>
 					<input
 						v-model="scores[3]"
 						class="input join-item focus:z-10"
 						placeholder="#4"
-						inputmode="numeric"
+						:inputmode="inputMode"
 					/>
 				</div>
 				<p class="fieldset-label">
