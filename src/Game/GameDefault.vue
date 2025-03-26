@@ -11,7 +11,7 @@ const scores = ref<string[]>(Array(game.value.players.length).fill(""));
 const textKeyboard = useLocalStorage<boolean>(key("textKeyboard"), false);
 const inputMode = computed(() => (textKeyboard.value ? "text" : "numeric"));
 
-function addScores() {
+function addScores(event: Event) {
 	const boltCount = scores.value.filter(isBolt).length;
 
 	if (boltCount > 1) {
@@ -84,6 +84,7 @@ function addScores() {
 		},
 	];
 	scores.value = Array(game.value.players.length).fill("");
+	(event.target as HTMLFormElement).reset();
 }
 
 function removeRound(id: string | undefined) {
