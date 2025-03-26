@@ -3,6 +3,7 @@ import { useLocalStorage } from "@vueuse/core";
 import { key, type Score, isBolt, isBoltScore, id, type Game } from "../utils";
 import Cell from "./Cell.vue";
 import { computed, ref, toRef } from "vue";
+import { RouterLink } from "vue-router";
 
 const props = defineProps<{ game: Game }>();
 const game = toRef(props, "game");
@@ -111,7 +112,7 @@ function resetGame() {
 			<table class="table text-center">
 				<thead class="bg-base-200 text-xs">
 					<tr>
-						<th v-for="index in scores.length">#{{ index }}</th>
+						<th v-for="player in game.players">{{ player }}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -171,7 +172,7 @@ function resetGame() {
 						<input
 							v-model="scores[index]"
 							class="input join-item focus:z-10"
-							:placeholder="`#${index + 1}`"
+							:placeholder="game.players[index]"
 							:inputmode="inputMode"
 						/>
 					</template>

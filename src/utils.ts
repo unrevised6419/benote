@@ -22,7 +22,7 @@ export type Game = {
 	rounds: ReadonlyArray<Round>;
 };
 
-export const key = (id: string) => `wolverine1002:${id}`;
+export const key = (id: string) => `wolverine1003:${id}`;
 
 export const formatter = Intl.NumberFormat(navigator.languages, {
 	signDisplay: "always",

@@ -11,6 +11,7 @@
 	"dependencies": {
 		"@allindevelopers/prettier-config": "^1.0.0",
 		"@allindevelopers/vue-local-scope": "^0.2.2",
+		"@heroicons/vue": "^2.2.0",
 		"@tailwindcss/vite": "^4.0.16",
 		"@tanstack/vue-query": "^5.69.0",
 		"@vite-pwa/assets-generator": "^0.2.6",

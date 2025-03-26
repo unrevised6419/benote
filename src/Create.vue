@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Warning from "./components/Warning.vue";
 import { id, key, type Game } from "./utils";
 import { useLocalStorage } from "@vueuse/core";
-import { useRouter } from "vue-router";
+import { useRouter, RouterLink } from "vue-router";
+import { UserIcon } from "@heroicons/vue/24/outline";
 
 const router = useRouter();
-const jucatori = ref(2);
+const players = ref([{ name: "Noi" }, { name: "Voi" }]);
 const games = useLocalStorage(key("games"), {} as Record<string, Game>);
 
 function createGame() {
@@ -15,7 +15,7 @@ function createGame() {
 	games.value[newGameId] = {
 		id: newGameId,
 		title: `Joc #${newGameId}`,
-		players: Array.from({ length: jucatori.value }, (_, i) => `#${i + 1}`),
+		players: players.value.map((player) => player.name),
 		rounds: [],
 	};
 
@@ -25,17 +25,42 @@ function createGame() {
 
 <template>
 	<div class="grid gap-4">
-		<div role="alert" class="alert alert-warning">
-			<Warning />
-			<span>Atenție: Pagină în dezvoltare!</span>
-		</div>
+		<form class="grid gap-2" @submit.prevent="createGame">
+			<div class="join" v-for="player in players">
+				<label class="input validator join-item grow">
+					<UserIcon class="h-[1em] opacity-50" />
+					<input
+						type="text"
+						v-model="player.name"
+						required
+						placeholder="Nume Jucător"
+						minlength="3"
+						maxlength="20"
+					/>
+				</label>
+				<button
+					type="button"
+					@click="players.splice(players.indexOf(player), 1)"
+					:disabled="players.length < 3"
+					class="btn btn-neutral join-item"
+				>
+					&times;
+				</button>
+			</div>
 
-		<select class="select w-full" v-model="jucatori">
-			<option value="2">2 jucători</option>
-			<option value="3">3 jucători</option>
-			<option value="4">4 jucători</option>
-		</select>
+			<button
+				@click="players.push({ name: '' })"
+				:disabled="players.length >= 4"
+				type="button"
+				class="btn join-item grow"
+			>
+				Adaugă
+			</button>
 
-		<button @click="createGame" class="btn w-full">Crează</button>
+			<div class="join flex">
+				<RouterLink to="/" class="btn join-item">Înapoi</RouterLink>
+				<button type="submit" class="btn join-item grow">Crează</button>
+			</div>
+		</form>
 	</div>
 </template>
