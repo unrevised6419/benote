@@ -10,8 +10,20 @@ const game = toRef(props, "game");
 const scores = ref<string[]>(Array(game.value.players.length).fill(""));
 const textKeyboard = useLocalStorage<boolean>(key("textKeyboard"), false);
 const inputMode = computed(() => (textKeyboard.value ? "text" : "numeric"));
+const eggMode = ref(false);
+
+const nextToDealCards = computed(() => {
+	const roundsCount = game.value.rounds.length;
+	const playersCount = game.value.players.length;
+	const player = roundsCount % playersCount;
+	return game.value.players[player];
+});
 
 function addScores(event: Event) {
+	if (eggMode.value) {
+		alert("Ouăle nu sunt încă implementat încă");
+	}
+
 	const boltCount = scores.value.filter(isBolt).length;
 
 	if (boltCount > 1) {
@@ -28,7 +40,8 @@ function addScores(event: Event) {
 		return;
 	}
 
-	const newScores: Score[] = scores.value.map((score, index) => {
+	// TODO: Separate each score type calculation in separate functions
+	const newScores = scores.value.map<Score>((score, index) => {
 		const scoreIsBolt = isBolt(score);
 		const lastRound = game.value.rounds[game.value.rounds.length - 1];
 		// @ts-expect-error - we know it's not undefined
@@ -83,7 +96,9 @@ function addScores(event: Event) {
 			scores: newScores,
 		},
 	];
+
 	scores.value = Array(game.value.players.length).fill("");
+	eggMode.value = false;
 	(event.target as HTMLFormElement).reset();
 }
 
@@ -98,13 +113,6 @@ function resetGame() {
 	game.value.rounds = [];
 	scores.value = Array(game.value.players.length).fill("");
 }
-
-const nextToDealCards = computed(() => {
-	const roundsCount = game.value.rounds.length;
-	const playersCount = game.value.players.length;
-	const player = roundsCount % playersCount;
-	return game.value.players[player];
-});
 </script>
 
 <template>
@@ -162,19 +170,32 @@ const nextToDealCards = computed(() => {
 		</div>
 
 		<div class="flex items-center justify-between">
-			<label class="inline-flex gap-1 text-xs">
+			<label class="inline-flex gap-1 text-sm">
 				<input
 					type="checkbox"
 					v-model="textKeyboard"
-					class="toggle toggle-xs"
+					class="toggle toggle-sm"
 				/>
-				<kbd v-if="textKeyboard" class="kbd kbd-xs">ABC</kbd>
-				<kbd v-else class="kbd kbd-xs">123</kbd>
+				<kbd v-if="textKeyboard" class="kbd kbd-sm">ABC</kbd>
+				<kbd v-else class="kbd kbd-sm">123</kbd>
 			</label>
+
+			<div
+				v-if="game.players.length === 2"
+				class="ml-auto flex items-center gap-1"
+			>
+				<span class="badge badge-sm">
+					{{ game.collected }}
+				</span>
+				<label class="badge badge-sm cursor-pointer select-none">
+					<input type="checkbox" v-model="eggMode" hidden />
+					{{ eggMode ? "🍳🍳🍳" : "🥚🥚🥚" }}
+				</label>
+			</div>
 		</div>
 
 		<form @submit.prevent="addScores" class="grid gap-4">
-			<fieldset class="fieldset">
+			<fieldset class="fieldset py-0">
 				<div class="join">
 					<label
 						v-for="(_, index) in scores"

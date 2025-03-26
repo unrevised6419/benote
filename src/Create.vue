@@ -17,6 +17,7 @@ function createGame() {
 		title: `Joc #${newGameId}`,
 		players: players.value.map((player) => player.name),
 		rounds: [],
+		collected: 0,
 	};
 
 	router.push(`/${newGameId}`);
@@ -34,7 +35,7 @@ function createGame() {
 						v-model="player.name"
 						required
 						placeholder="Nume Jucător"
-						minlength="3"
+						minlength="2"
 						maxlength="20"
 					/>
 				</label>

@@ -10,7 +10,13 @@ export type ScoreBolt = {
 	delta: 1 | 2 | 3;
 };
 
-export type Score = ScoreNormal | ScoreBolt;
+export type ScoreEgg = {
+	type: "egg";
+	total: number;
+	delta: number;
+};
+
+export type Score = ScoreNormal | ScoreBolt | ScoreEgg;
 export type Round = {
 	id: string;
 	scores: ReadonlyArray<Score>;
@@ -19,6 +25,7 @@ export type Game = {
 	readonly id: string;
 	readonly title: string;
 	readonly players: ReadonlyArray<string>;
+	collected: number;
 	rounds: ReadonlyArray<Round>;
 };
 
