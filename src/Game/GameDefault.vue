@@ -98,6 +98,13 @@ function resetGame() {
 	game.value.rounds = [];
 	scores.value = Array(game.value.players.length).fill("");
 }
+
+const nextToDealCards = computed(() => {
+	const roundsCount = game.value.rounds.length;
+	const playersCount = game.value.players.length;
+	const player = roundsCount % playersCount;
+	return game.value.players[player];
+});
 </script>
 
 <template>
@@ -176,8 +183,16 @@ function resetGame() {
 						<input
 							v-model="scores[index]"
 							required
-							:placeholder="game.players[index]"
+							:placeholder="
+								game.players[index] === nextToDealCards
+									? `Bate: ${nextToDealCards}`
+									: game.players[index]
+							"
 							:inputmode="inputMode"
+							:class="{
+								'placeholder:text-info placeholder:font-medium':
+									game.players[index] === nextToDealCards,
+							}"
 						/>
 					</label>
 				</div>
