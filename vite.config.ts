@@ -21,7 +21,6 @@ export default defineConfig({
 				name: "Belote Notes",
 				short_name: "Benote",
 				description: "A simple Belote score keeper",
-				theme_color: "#ffffff",
 			},
 
 			workbox: {
@@ -31,7 +30,7 @@ export default defineConfig({
 			},
 
 			devOptions: {
-				enabled: false,
+				enabled: true,
 				navigateFallback: "index.html",
 				suppressWarnings: true,
 				type: "module",
