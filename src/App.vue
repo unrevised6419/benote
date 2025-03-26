@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { RouterView } from "vue-router";
+import PWABadge from "./components/PWABadge.vue";
 </script>
 
 <template>
@@ -8,4 +9,5 @@ import { RouterView } from "vue-router";
 	>
 		<RouterView />
 	</div>
+	<PWABadge />
 </template>
