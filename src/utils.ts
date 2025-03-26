@@ -12,11 +12,17 @@ export type ScoreBolt = {
 
 export type Score = ScoreNormal | ScoreBolt;
 export type Round = {
-	id: number;
-	scores: Score[];
+	id: string;
+	scores: ReadonlyArray<Score>;
+};
+export type Game = {
+	readonly id: string;
+	readonly title: string;
+	readonly players: ReadonlyArray<string>;
+	rounds: ReadonlyArray<Round>;
 };
 
-export const key = (id: string) => `wolverine1001:${id}`;
+export const key = (id: string) => `wolverine1002:${id}`;
 
 export const formatter = Intl.NumberFormat(navigator.languages, {
 	signDisplay: "always",
@@ -29,4 +35,15 @@ export function isBolt(value: string): boolean {
 
 export function isBoltScore(score: Score): score is ScoreBolt {
 	return score.type === "bolt";
+}
+
+export const id = () => {
+	return Math.random().toString(36).slice(2);
+};
+
+export function firstOrSelf<T>(
+	value: T | T[] | null | undefined,
+): T | undefined {
+	if (value == null) return;
+	return Array.isArray(value) ? value.at(0) : value;
 }

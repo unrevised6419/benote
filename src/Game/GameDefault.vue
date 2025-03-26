@@ -1,16 +1,12 @@
 <script setup lang="ts">
 import { useLocalStorage } from "@vueuse/core";
-import { type Round, key, type Score, isBolt, isBoltScore } from "./utils";
+import { key, type Score, isBolt, isBoltScore, id, type Game } from "../utils";
 import Cell from "./Cell.vue";
-import { computed } from "vue";
+import { computed, ref, toRef } from "vue";
 
-const playersCount = 2;
-
-const rounds = useLocalStorage<Round[]>(key("rounds"), []);
-const scores = useLocalStorage<string[]>(
-	key("scores"),
-	Array(playersCount).fill(""),
-);
+const props = defineProps<{ game: Game }>();
+const game = toRef(props, "game");
+const scores = ref<string[]>(Array(game.value.players.length).fill(""));
 const textKeyboard = useLocalStorage<boolean>(key("textKeyboard"), false);
 const inputMode = computed(() => (textKeyboard.value ? "text" : "numeric"));
 
@@ -33,7 +29,7 @@ function addScores() {
 
 	const newScores: Score[] = scores.value.map((score, index) => {
 		const scoreIsBolt = isBolt(score);
-		const lastRound = rounds.value[rounds.value.length - 1];
+		const lastRound = game.value.rounds[game.value.rounds.length - 1];
 		// @ts-expect-error - we know it's not undefined
 		const lastRoundTotal = lastRound ? lastRound.scores[index].total : 0;
 
@@ -46,7 +42,7 @@ function addScores() {
 			};
 		}
 
-		const lastBoltScore = rounds.value
+		const lastBoltScore = game.value.rounds
 			// @ts-expect-error - we know it's not undefined
 			.findLast((round) => isBoltScore(round.scores[index]))
 			?.scores.find(isBoltScore);
@@ -79,32 +75,37 @@ function addScores() {
 		throw new Error("Invalid bolt score");
 	});
 
-	rounds.value.push({
-		id: rounds.value.length + 1,
-		scores: newScores,
-	});
-	scores.value = Array(playersCount).fill("");
+	game.value.rounds = [
+		...game.value.rounds,
+		{
+			id: id(),
+			scores: newScores,
+		},
+	];
+	scores.value = Array(game.value.players.length).fill("");
 }
 
-function removeRound(id: number | undefined) {
-	if (rounds.value.length === 0) return;
+function removeRound(id: string | undefined) {
+	if (game.value.rounds.length === 0) return;
 	if (!confirm("Sigur?")) return;
-	const index = rounds.value.findIndex((round) => round.id === id);
-	rounds.value.splice(index, 1);
+	game.value.rounds = game.value.rounds.filter((round) => round.id !== id);
 }
 
 function resetGame() {
 	if (!confirm("Sigur?")) return;
-	rounds.value = [];
-	scores.value = Array(playersCount).fill("");
+	game.value.rounds = [];
+	scores.value = Array(game.value.players.length).fill("");
 }
 </script>
 
 <template>
 	<div class="grid gap-4">
-		<button type="button" @click="resetGame" class="btn">
-			Resetează jocul
-		</button>
+		<div class="join flex">
+			<RouterLink to="/" class="btn join-item"> Înapoi </RouterLink>
+			<button type="button" @click="resetGame" class="btn join-item grow">
+				Resetează jocul
+			</button>
+		</div>
 
 		<div class="border-base-content/5 bg-base-100 rounded border">
 			<table class="table text-center">
@@ -114,10 +115,10 @@ function resetGame() {
 					</tr>
 				</thead>
 				<tbody>
-					<tr v-if="rounds.length === 0">
+					<tr v-if="game.rounds.length === 0">
 						<td :colspan="scores.length" class="text-center">Fără runde</td>
 					</tr>
-					<tr v-for="round in rounds" :key="round.id" class="list-row">
+					<tr v-for="round in game.rounds" :key="round.id" class="list-row">
 						<td v-for="score in round.scores">
 							<Cell :score="score" />
 						</td>
@@ -129,7 +130,7 @@ function resetGame() {
 							<div class="flex items-center justify-between">
 								<div class="inline-flex divide-x">
 									<span
-										v-for="score in rounds[rounds.length - 1]?.scores"
+										v-for="score in game.rounds[game.rounds.length - 1]?.scores"
 										class="px-2"
 									>
 										{{ score.total }}
@@ -138,9 +139,9 @@ function resetGame() {
 
 								<button
 									type="button"
-									@click="removeRound(rounds[rounds.length - 1]?.id)"
+									@click="removeRound(game.rounds[game.rounds.length - 1]?.id)"
 									class="btn btn-xs"
-									:disabled="rounds.length === 0"
+									:disabled="game.rounds.length === 0"
 								>
 									Șterge ultima rundă
 								</button>

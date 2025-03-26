@@ -10,6 +10,7 @@
 	},
 	"dependencies": {
 		"@allindevelopers/prettier-config": "^1.0.0",
+		"@allindevelopers/vue-local-scope": "^0.2.2",
 		"@tailwindcss/vite": "^4.0.16",
 		"@tanstack/vue-query": "^5.69.0",
 		"@vite-pwa/assets-generator": "^0.2.6",
@@ -21,6 +22,7 @@
 		"prettier-plugin-tailwindcss": "^0.6.11",
 		"reka-ui": "^2.1.1",
 		"tailwindcss": "^4.0.15",
+		"tiny-invariant": "^1.3.3",
 		"typescript": "^5.8.2",
 		"vite": "^6.2.3",
 		"vite-plugin-pwa": "^0.21.2",

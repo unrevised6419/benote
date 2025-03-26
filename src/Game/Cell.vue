@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatter, isBoltScore, type Score } from "./utils";
+import { formatter, isBoltScore, type Score } from "../utils";
 
 defineProps<{
 	score: Score;
