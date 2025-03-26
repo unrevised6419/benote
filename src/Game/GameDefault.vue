@@ -168,14 +168,17 @@ function resetGame() {
 		<form @submit.prevent="addScores" class="grid gap-4">
 			<fieldset class="fieldset">
 				<div class="join">
-					<template v-for="(_, index) in scores">
+					<label
+						v-for="(_, index) in scores"
+						class="input validator join-item focus-within:z-10"
+					>
 						<input
 							v-model="scores[index]"
-							class="input join-item focus:z-10"
+							required
 							:placeholder="game.players[index]"
 							:inputmode="inputMode"
 						/>
-					</template>
+					</label>
 				</div>
 				<p class="fieldset-label">
 					<kbd class="kbd kbd-xs">b</kbd>
