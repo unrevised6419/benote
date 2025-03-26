@@ -11,13 +11,12 @@ export type ScoreBolt = {
 };
 
 export type Score = ScoreNormal | ScoreBolt;
-export type Scores = [Score, Score, Score, Score];
 export type Round = {
 	id: number;
-	scores: Scores;
+	scores: Score[];
 };
 
-export const key = (id: string) => `wolverine1000:${id}`;
+export const key = (id: string) => `wolverine1001:${id}`;
 
 export const formatter = Intl.NumberFormat(navigator.languages, {
 	signDisplay: "always",

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { RouterLink } from "vue-router";
 import Warning from "./components/Warning.vue";
 </script>
+
 <template>
 	<div class="grid gap-4">
 		<div role="alert" class="alert alert-warning">
@@ -9,10 +9,6 @@ import Warning from "./components/Warning.vue";
 			<span>Atenție: Pagină în dezvoltare!</span>
 		</div>
 
-		<RouterLink to="/create" class="btn w-full">Crează Joc Nou</RouterLink>
-
-		<div>Jocuri existente</div>
-
-		<RouterLink to="/play" class="underline">Joacă ▶️</RouterLink>
+		<div>TODO: Crează joc nou</div>
 	</div>
 </template>
