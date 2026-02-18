@@ -137,7 +137,6 @@ function handleAdd() {
 
 	addScores();
 	scores.value = Array(game.value.teams.length).fill("");
-	focusedPlayer.value = 0;
 
 	nextTick(() => {
 		if (!scrollContainerRef.value) return;

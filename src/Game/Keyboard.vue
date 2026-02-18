@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import Keyboard from "simple-keyboard";
 import "simple-keyboard/build/css/index.css";
-import { onMounted, onUnmounted, ref, useTemplateRef } from "vue";
+import { onMounted, onUnmounted, shallowRef, useTemplateRef } from "vue";
 
 const emits = defineEmits<{
 	add: [];
@@ -18,7 +18,7 @@ const emits = defineEmits<{
 }>();
 
 const keyboardRef = useTemplateRef("keyboard");
-const keyboard = ref<Keyboard>();
+const keyboard = shallowRef<Keyboard>();
 
 const numpadDisplay: Record<string, string> = {
 	"{numpad0}": "0",
