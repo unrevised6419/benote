@@ -212,7 +212,10 @@ onMounted(() => {
 
 <template>
 	<div class="relative flex h-dvh flex-col">
-		<div ref="scrollContainer" class="grid gap-4 overflow-scroll p-4">
+		<div
+			ref="scrollContainer"
+			class="grid gap-4 overflow-scroll overscroll-contain p-4"
+		>
 			<div class="join flex">
 				<RouterLink to="/" class="btn join-item"> Înapoi </RouterLink>
 				<button
