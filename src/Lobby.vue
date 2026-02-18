@@ -7,7 +7,7 @@ import { LocalScope } from "@all1ndev/vue-local-scope";
 import { PlayIcon, TrashIcon } from "@heroicons/vue/24/outline";
 
 const gamesRecord = useLocalStorage(key("games"), {} as Record<string, Game>);
-const games = computed(() => Object.values(gamesRecord.value));
+const games = computed(() => Object.values(gamesRecord.value).toReversed());
 
 function deleteGame(gameId: string) {
 	if (!confirm("Sigur?")) return;
@@ -28,11 +28,19 @@ function deleteGame(gameId: string) {
 					<div
 						class="bg-neutral text-neutral-content rounded-box size-10"
 					>
-						{{ game.players.length }}
+						{{ game.teams.length }}
 					</div>
 				</div>
 				<div>
-					<div>{{ game.title }}</div>
+					<div>
+						{{ game.title }}
+					</div>
+					<div
+						v-if="game.createdDate"
+						class="text-base-content/50 text-xs"
+					>
+						{{ new Date(game.createdDate).toLocaleString() }}
+					</div>
 					<div class="text-xs font-semibold uppercase opacity-60">
 						<LocalScope
 							:round="game.rounds.at(-1)"

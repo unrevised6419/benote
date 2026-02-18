@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { type Score, isBolt, isBoltScore, id, type Game } from "../utils";
+import {
+	type Score,
+	isBolt,
+	isBoltScore,
+	id,
+	type Game,
+	type Team,
+} from "../utils";
 import Cell from "./Cell.vue";
 import { computed, ref, toRef } from "vue";
 import { RouterLink } from "vue-router";
@@ -7,13 +14,16 @@ import Keyboard from "./Keyboard.vue";
 
 const props = defineProps<{ game: Game }>();
 const game = toRef(props, "game");
-const scores = ref<string[]>(Array(game.value.players.length).fill(""));
+const lastRound = computed(
+	() => game.value.rounds[game.value.rounds.length - 1],
+);
+const scores = ref<string[]>(Array(game.value.teams.length).fill(""));
 
-const nextToDealCards = computed(() => {
+const nextToDealCards = computed<Team>(() => {
 	const roundsCount = game.value.rounds.length;
-	const playersCount = game.value.players.length;
-	const player = roundsCount % playersCount;
-	return game.value.players[player];
+	const teamsCount = game.value.teams.length;
+	const team = roundsCount % teamsCount;
+	return game.value.teams[team] as Team;
 });
 
 function addScores() {
@@ -90,7 +100,7 @@ function addScores() {
 		},
 	];
 
-	scores.value = Array(game.value.players.length).fill("");
+	scores.value = Array(game.value.teams.length).fill("");
 }
 
 function removeRound(id: string | undefined) {
@@ -102,10 +112,10 @@ function removeRound(id: string | undefined) {
 function resetGame() {
 	if (!confirm("Sigur?")) return;
 	game.value.rounds = [];
-	scores.value = Array(game.value.players.length).fill("");
+	scores.value = Array(game.value.teams.length).fill("");
 }
 
-const focusedPlayer = ref<number>();
+const focusedPlayer = ref<number>(0);
 
 function handleAdd() {
 	if (scores.value.some((score) => score === "")) {
@@ -114,21 +124,25 @@ function handleAdd() {
 	}
 
 	addScores();
-	scores.value = Array(game.value.players.length).fill("");
-	focusedPlayer.value = undefined;
+	scores.value = Array(game.value.teams.length).fill("");
+	focusedPlayer.value = 0;
+	document.scrollingElement?.scrollTo({
+		top: document.scrollingElement.scrollHeight,
+		behavior: "smooth",
+	});
 }
 
 function handleNext() {
 	if (focusedPlayer.value === undefined) return;
-	const nextPlayer = (focusedPlayer.value + 1) % game.value.players.length;
+	const nextPlayer = (focusedPlayer.value + 1) % game.value.teams.length;
 	focusedPlayer.value = nextPlayer;
 }
 
 function handleBack() {
 	if (focusedPlayer.value === undefined) return;
 	const previousPlayer =
-		(focusedPlayer.value - 1 + game.value.players.length) %
-		game.value.players.length;
+		(focusedPlayer.value - 1 + game.value.teams.length) %
+		game.value.teams.length;
 	focusedPlayer.value = previousPlayer;
 }
 
@@ -138,13 +152,14 @@ function handleClear() {
 }
 
 function handleBolt() {
-	if (focusedPlayer.value === undefined) return;
 	scores.value[focusedPlayer.value] = "Bolt";
+	handleNext();
 }
 
 function handleMinus() {
 	if (focusedPlayer.value === undefined) return;
 	scores.value[focusedPlayer.value] = "-10";
+	handleNext();
 }
 
 function handleNumber(value: number) {
@@ -169,19 +184,6 @@ function handleNumber(value: number) {
 
 	scores.value[focusedPlayer.value] = newValue;
 }
-
-function handleKeyboard() {
-	if (focusedPlayer.value !== undefined) {
-		focusedPlayer.value = undefined;
-		return;
-	}
-
-	focusedPlayer.value = 0;
-	document.scrollingElement?.scrollTo({
-		top: document.scrollingElement.scrollHeight,
-		behavior: "smooth",
-	});
-}
 </script>
 
 <template>
@@ -194,10 +196,14 @@ function handleKeyboard() {
 		</div>
 
 		<div class="border-base-content/5 bg-base-100 rounded border">
-			<table class="table text-center">
+			<table class="table table-fixed text-center">
 				<thead class="bg-base-200 text-xs">
 					<tr>
-						<th v-for="player in game.players">{{ player }}</th>
+						<th v-for="team in game.teams" class="truncate px-2">
+							{{ team.name }}
+						</th>
+						<!-- Keeps last column 0 width -->
+						<th class="w-0 p-0"></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -211,8 +217,19 @@ function handleKeyboard() {
 						:key="round.id"
 						class="list-row"
 					>
-						<td v-for="score in round.scores">
-							<Cell :score="score" />
+						<td
+							v-for="score in round.scores"
+							class="px-0"
+							:class="{
+								'border-b-primary border-b':
+									roundIndex !== game.rounds.length - 1 &&
+									(roundIndex + 1) % game.playersCount === 0,
+							}"
+						>
+							<Cell
+								:score="score"
+								:bold="roundIndex === game.rounds.length - 1"
+							/>
 						</td>
 						<td
 							v-if="roundIndex === game.rounds.length - 1"
@@ -223,12 +240,7 @@ function handleKeyboard() {
 							>
 								<button
 									type="button"
-									@click="
-										removeRound(
-											game.rounds[game.rounds.length - 1]
-												?.id,
-										)
-									"
+									@click="removeRound(lastRound?.id)"
 									class="btn btn-xs btn-ghost"
 									:disabled="game.rounds.length === 0"
 								>
@@ -242,67 +254,32 @@ function handleKeyboard() {
 				<tfoot class="bg-base-200 text-xs">
 					<tr>
 						<th
-							v-for="(player, index) in game.players"
+							v-for="(team, index) in game.teams"
+							class="px-2 py-1"
 							:class="{
-								'text-info font-medium':
-									game.players[index] === nextToDealCards,
-								'outline-2 outline-red-500':
-									focusedPlayer === index,
+								'outline-2': focusedPlayer === index,
 							}"
 						>
-							<template v-if="scores[index]">
-								{{ player }}: {{ scores[index] }}
-							</template>
-							<template v-else>
-								{{ player }}
-							</template>
-						</th>
-					</tr>
-					<tr>
-						<th
-							:colspan="scores.length"
-							class="border-base-300 border-t"
-						>
-							<div class="flex items-center justify-between">
-								<div class="inline-flex divide-x">
-									<span
-										v-for="score in game.rounds[
-											game.rounds.length - 1
-										]?.scores ?? [
-											undefined,
-											undefined,
-											undefined,
-										]"
-										class="px-2"
-									>
-										{{ score?.total ?? "0" }}
-									</span>
-								</div>
-
-								<button
-									type="button"
-									@click="handleKeyboard"
-									class="btn btn-xs"
-								>
-									Tastatură
-								</button>
-							</div>
+							<div class="truncate">{{ team.name }}</div>
+							<div>{{ scores[index] || "n/a" }}</div>
 						</th>
 					</tr>
 				</tfoot>
 			</table>
 		</div>
 
-		<div v-if="focusedPlayer !== undefined">
-			<Keyboard
-				@add="handleAdd"
-				@next="handleNext"
-				@back="handleBack"
-				@clear="handleClear"
-				@bolt="handleBolt"
-				@minus="handleMinus"
-				@number="handleNumber"
-			/>
+		<div class="text-info text-xs">
+			Bate Carțile: {{ nextToDealCards.name }}
 		</div>
+
+		<Keyboard
+			@add="handleAdd"
+			@next="handleNext"
+			@back="handleBack"
+			@clear="handleClear"
+			@bolt="handleBolt"
+			@minus="handleMinus"
+			@number="handleNumber"
+		/>
 	</div>
 </template>

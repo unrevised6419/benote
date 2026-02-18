@@ -24,12 +24,14 @@ export type Round = {
 export type Game = {
 	readonly id: string;
 	readonly title: string;
-	readonly players: ReadonlyArray<string>;
+	readonly teams: ReadonlyArray<Team>;
+	readonly createdDate: string | undefined;
+	readonly playersCount: number;
 	collected: number;
 	rounds: ReadonlyArray<Round>;
 };
 
-export const key = (id: string) => `wolverine1003:${id}`;
+export const key = (id: string) => `wolverine1005:${id}`;
 
 export const formatter = Intl.NumberFormat(navigator.languages, {
 	signDisplay: "always",
@@ -53,4 +55,8 @@ export function firstOrSelf<T>(
 ): T | undefined {
 	if (value == null) return;
 	return Array.isArray(value) ? value.at(0) : value;
+}
+
+export interface Team {
+	readonly name: string;
 }

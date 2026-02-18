@@ -1,13 +1,41 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { id, key, type Game } from "./utils";
+import { shallowRef } from "vue";
+import { id, key, type Game, type Team } from "./utils";
 import { useLocalStorage } from "@vueuse/core";
 import { useRouter, RouterLink } from "vue-router";
 import { UserIcon } from "@heroicons/vue/24/outline";
 
+interface Choice {
+	readonly label: string;
+	readonly players: number;
+	readonly teams: number;
+}
+
 const router = useRouter();
-const players = ref([{ name: "Noi" }, { name: "Voi" }]);
 const games = useLocalStorage(key("games"), {} as Record<string, Game>);
+
+const choices: [Choice, Choice, Choice, Choice] = [
+	{ teams: 2, players: 4, label: "2 vs 2" },
+	{ teams: 2, players: 2, label: "1 vs 1" },
+	{ teams: 3, players: 3, label: "1 vs 1 vs 1" },
+	{ teams: 4, players: 4, label: "1 vs 1 vs 1 vs 1" },
+];
+
+const selectedChoice = shallowRef<Choice>(choices[0]);
+
+const teams = shallowRef<ReadonlyArray<Team>>(
+	createTeams(selectedChoice.value),
+);
+
+function createTeams(option: Choice): ReadonlyArray<Team> {
+	return Array.from({ length: option.teams }, () => ({
+		name: ``,
+	}));
+}
+
+function addTeams(option: Choice) {
+	teams.value = createTeams(option);
+}
 
 function createGame() {
 	const newGameId = id();
@@ -15,7 +43,9 @@ function createGame() {
 	games.value[newGameId] = {
 		id: newGameId,
 		title: `Joc #${newGameId}`,
-		players: players.value.map((player) => player.name),
+		createdDate: new Date().toISOString(),
+		teams: teams.value,
+		playersCount: selectedChoice.value.players,
 		rounds: [],
 		collected: 0,
 	};
@@ -26,41 +56,44 @@ function createGame() {
 
 <template>
 	<div class="grid gap-4">
-		<form class="grid gap-2" @submit.prevent="createGame">
-			<div class="join" v-for="player in players">
-				<label class="input validator join-item grow">
-					<UserIcon class="h-[1em] opacity-50" />
-					<input
-						type="text"
-						v-model="player.name"
-						required
-						placeholder="Nume Jucător"
-						minlength="2"
-						maxlength="20"
-					/>
-				</label>
-				<button
-					type="button"
-					@click="players.splice(players.indexOf(player), 1)"
-					:disabled="players.length < 3"
-					class="btn btn-neutral join-item"
-				>
-					&times;
-				</button>
-			</div>
+		<div class="join">
+			<input
+				v-for="choice in choices"
+				@click="addTeams(choice)"
+				:value="choice"
+				class="join-item btn grow"
+				type="radio"
+				name="choice"
+				:aria-label="choice.label"
+				v-model="selectedChoice"
+			/>
+		</div>
 
-			<button
-				@click="players.push({ name: '' })"
-				:disabled="players.length >= 4"
-				type="button"
-				class="btn join-item grow"
+		<form class="grid gap-2" @submit.prevent="createGame">
+			<label
+				v-for="(team, index) in teams"
+				class="input validator w-full"
 			>
-				Adaugă
-			</button>
+				<UserIcon class="h-[1em] opacity-50" />
+				<input
+					type="text"
+					v-model="team.name"
+					required
+					:placeholder="`Nume Echipă ${index + 1}`"
+					minlength="2"
+					maxlength="20"
+				/>
+			</label>
 
 			<div class="join flex">
 				<RouterLink to="/" class="btn join-item">Înapoi</RouterLink>
-				<button type="submit" class="btn join-item grow">Crează</button>
+				<button
+					type="submit"
+					:disabled="!selectedChoice"
+					class="btn join-item grow"
+				>
+					Crează
+				</button>
 			</div>
 		</form>
 	</div>
