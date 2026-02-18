@@ -81,7 +81,7 @@ function createGame() {
 </script>
 
 <template>
-	<div class="grid gap-4">
+	<div class="grid gap-4 p-4">
 		<div class="join">
 			<input
 				v-for="choice in choices"

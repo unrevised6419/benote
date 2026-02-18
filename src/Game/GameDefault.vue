@@ -9,7 +9,7 @@ import {
 	type Player,
 } from "../utils";
 import Cell from "./Cell.vue";
-import { computed, ref, toRef } from "vue";
+import { computed, nextTick, onMounted, ref, toRef, useTemplateRef } from "vue";
 import { RouterLink } from "vue-router";
 import Keyboard from "./Keyboard.vue";
 
@@ -19,6 +19,9 @@ const lastRound = computed(
 	() => game.value.rounds[game.value.rounds.length - 1],
 );
 const scores = ref<string[]>(Array(game.value.teams.length).fill(""));
+const focusedPlayer = ref<number>(0);
+
+const scrollContainerRef = useTemplateRef("scrollContainer");
 
 const nextToDealCards = computed(() => {
 	const roundsCount = game.value.rounds.length;
@@ -126,8 +129,6 @@ function resetGame() {
 	scores.value = Array(game.value.teams.length).fill("");
 }
 
-const focusedPlayer = ref<number>(0);
-
 function handleAdd() {
 	if (scores.value.some((score) => score === "")) {
 		alert("Toți jucătorii trebuie să aibă un scor");
@@ -137,9 +138,14 @@ function handleAdd() {
 	addScores();
 	scores.value = Array(game.value.teams.length).fill("");
 	focusedPlayer.value = 0;
-	document.scrollingElement?.scrollTo({
-		top: document.scrollingElement.scrollHeight,
-		behavior: "smooth",
+
+	nextTick(() => {
+		if (!scrollContainerRef.value) return;
+
+		scrollContainerRef.value.scrollTo({
+			top: scrollContainerRef.value.scrollHeight,
+			behavior: "smooth",
+		});
 	});
 }
 
@@ -195,110 +201,133 @@ function handleNumber(value: number) {
 
 	scores.value[focusedPlayer.value] = newValue;
 }
+
+onMounted(() => {
+	if (!scrollContainerRef.value) return;
+
+	scrollContainerRef.value.scrollTo({
+		top: scrollContainerRef.value.scrollHeight,
+	});
+});
 </script>
 
 <template>
-	<div class="grid gap-4">
-		<div class="join flex">
-			<RouterLink to="/" class="btn join-item"> Înapoi </RouterLink>
-			<button type="button" @click="resetGame" class="btn join-item grow">
-				Resetează jocul
-			</button>
-		</div>
+	<div class="relative flex h-dvh flex-col">
+		<div ref="scrollContainer" class="grid gap-4 overflow-scroll p-4">
+			<div class="join flex">
+				<RouterLink to="/" class="btn join-item"> Înapoi </RouterLink>
+				<button
+					type="button"
+					@click="resetGame"
+					class="btn join-item grow"
+				>
+					Resetează jocul
+				</button>
+			</div>
 
-		<div class="border-base-content/5 bg-base-100 rounded border">
-			<table class="table table-fixed text-center">
-				<thead class="bg-base-200 text-xs">
-					<tr>
-						<th v-for="team in game.teams" class="truncate px-2">
-							{{ team.name }}
-						</th>
-						<!-- Keeps last column 0 width -->
-						<th class="w-0 p-0"></th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr v-if="game.rounds.length === 0">
-						<td :colspan="scores.length" class="text-center">
-							Fără runde
-						</td>
-					</tr>
-					<tr
-						v-for="(round, roundIndex) in game.rounds"
-						:key="round.id"
-						class="list-row"
-					>
-						<td
-							v-for="score in round.scores"
-							class="px-0"
-							:class="{
-								'border-b-primary border-b':
-									roundIndex !== game.rounds.length - 1 &&
-									(roundIndex + 1) %
-										game.totalPlayersCount ===
-										0,
-							}"
-						>
-							<Cell
-								:score="score"
-								:bold="roundIndex === game.rounds.length - 1"
-							/>
-						</td>
-						<td
-							v-if="roundIndex === game.rounds.length - 1"
-							class="relative w-0 p-0"
-						>
-							<div
-								class="absolute inset-y-0 right-0 content-center px-2"
+			<div class="border-base-content/5 bg-base-100 rounded border">
+				<table class="table table-fixed text-center">
+					<thead class="bg-base-200 text-xs">
+						<tr>
+							<th
+								v-for="team in game.teams"
+								class="truncate px-2"
 							>
-								<button
-									type="button"
-									@click="removeRound(lastRound?.id)"
-									class="btn btn-xs btn-ghost"
-									:disabled="game.rounds.length === 0"
-								>
-									&times;
-								</button>
-							</div>
-						</td>
-					</tr>
-				</tbody>
-
-				<tfoot class="bg-base-200 text-xs">
-					<tr>
-						<th
-							v-for="(team, index) in game.teams"
-							class="px-2 py-1"
-							:class="{
-								'outline-2': focusedPlayer === index,
-							}"
+								{{ team.name }}
+							</th>
+							<!-- Keeps last column 0 width -->
+							<th class="w-0 p-0"></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-if="game.rounds.length === 0">
+							<td :colspan="scores.length" class="text-center">
+								Fără runde
+							</td>
+						</tr>
+						<tr
+							v-for="(round, roundIndex) in game.rounds"
+							:key="round.id"
+							class="list-row"
 						>
-							<div class="truncate">{{ team.name }}</div>
-							<div>{{ scores[index] || "n/a" }}</div>
-						</th>
-					</tr>
-				</tfoot>
-			</table>
-		</div>
+							<td
+								v-for="score in round.scores"
+								class="px-0"
+								:class="{
+									'border-b-primary border-b':
+										roundIndex !== game.rounds.length - 1 &&
+										(roundIndex + 1) %
+											game.totalPlayersCount ===
+											0,
+								}"
+							>
+								<Cell
+									:score="score"
+									:bold="
+										roundIndex === game.rounds.length - 1
+									"
+								/>
+							</td>
+							<td
+								v-if="roundIndex === game.rounds.length - 1"
+								class="relative w-0 p-0"
+							>
+								<div
+									class="absolute inset-y-0 right-0 content-center px-2"
+								>
+									<button
+										type="button"
+										@click="removeRound(lastRound?.id)"
+										class="btn btn-xs btn-ghost"
+										:disabled="game.rounds.length === 0"
+									>
+										&times;
+									</button>
+								</div>
+							</td>
+						</tr>
+					</tbody>
 
-		<div class="text-xs font-semibold">
-			<span class="text-base-content/50">Bate Cărțile: </span>
-			<span class="italic">
-				<span>{{ nextToDealCards.team.name }}</span>
-				<span v-if="game.totalPlayersCount / game.teams.length !== 1">
-					- {{ nextToDealCards.player.name }}
+					<tfoot class="bg-base-200 text-xs">
+						<tr>
+							<th
+								v-for="(team, index) in game.teams"
+								class="px-2 py-1"
+								:class="{
+									'outline-2': focusedPlayer === index,
+								}"
+							>
+								<div class="truncate">{{ team.name }}</div>
+								<div>{{ scores[index] || "n/a" }}</div>
+							</th>
+						</tr>
+					</tfoot>
+				</table>
+			</div>
+
+			<div class="text-xs font-semibold">
+				<span class="text-base-content/50">Bate Cărțile: </span>
+				<span class="italic">
+					<span>{{ nextToDealCards.team.name }}</span>
+					<span
+						v-if="game.totalPlayersCount / game.teams.length !== 1"
+					>
+						- {{ nextToDealCards.player.name }}
+					</span>
 				</span>
-			</span>
+			</div>
 		</div>
 
-		<Keyboard
-			@add="handleAdd"
-			@next="handleNext"
-			@back="handleBack"
-			@clear="handleClear"
-			@bolt="handleBolt"
-			@minus="handleMinus"
-			@number="handleNumber"
-		/>
+		<div class="mt-auto">
+			<Keyboard
+				@add="handleAdd"
+				@next="handleNext"
+				@back="handleBack"
+				@clear="handleClear"
+				@bolt="handleBolt"
+				@minus="handleMinus"
+				@number="handleNumber"
+			/>
+		</div>
 	</div>
 </template>

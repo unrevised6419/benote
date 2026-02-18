@@ -86,9 +86,7 @@ onMounted(() => {
 		onKeyPress: handleKeyPress,
 		layout: {
 			default: [
-				"{numpad1} {numpad2} {numpad3}",
-				"{numpad4} {numpad5} {numpad6}",
-				"{numpad7} {numpad8} {numpad9}",
+				"{numpad1} {numpad2} {numpad3} {numpad4} {numpad5} {numpad6} {numpad7} {numpad8} {numpad9}",
 				"{bolt} {numpad0} {minus}",
 				"{clear} {back} {next} {add}",
 			],

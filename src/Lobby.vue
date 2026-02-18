@@ -15,7 +15,7 @@ function deleteGame(gameId: string) {
 }
 </script>
 <template>
-	<div class="grid gap-4">
+	<div class="grid gap-4 p-4">
 		<RouterLink to="/create" class="btn w-full">Crează Joc Nou</RouterLink>
 
 		<ul class="list bg-base-100 rounded-box shadow-md">
