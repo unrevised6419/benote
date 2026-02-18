@@ -70,7 +70,9 @@ function close() {
 				>
 					Reâncarcă
 				</button>
-				<button type="button" class="btn btn-sm" @click="close">&times;</button>
+				<button type="button" class="btn btn-sm" @click="close">
+					&times;
+				</button>
 			</div>
 		</div>
 	</div>

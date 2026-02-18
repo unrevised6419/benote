@@ -3,7 +3,7 @@ import { RouterLink } from "vue-router";
 import { useLocalStorage } from "@vueuse/core";
 import { key, type Game } from "./utils";
 import { computed } from "vue";
-import { LocalScope } from "@allindevelopers/vue-local-scope";
+import { LocalScope } from "@all1ndev/vue-local-scope";
 import { PlayIcon, TrashIcon } from "@heroicons/vue/24/outline";
 
 const gamesRecord = useLocalStorage(key("games"), {} as Record<string, Game>);
@@ -25,25 +25,38 @@ function deleteGame(gameId: string) {
 
 			<li v-for="game in games" class="list-row">
 				<div class="avatar avatar-placeholder">
-					<div class="bg-neutral text-neutral-content rounded-box size-10">
+					<div
+						class="bg-neutral text-neutral-content rounded-box size-10"
+					>
 						{{ game.players.length }}
 					</div>
 				</div>
 				<div>
 					<div>{{ game.title }}</div>
 					<div class="text-xs font-semibold uppercase opacity-60">
-						<LocalScope :round="game.rounds.at(-1)" #default="{ round }">
+						<LocalScope
+							:round="game.rounds.at(-1)"
+							#default="{ round }"
+						>
 							<template v-if="round">
-								{{ round.scores.map((s) => s.total).join(" | ") }}
+								{{
+									round.scores.map((s) => s.total).join(" | ")
+								}}
 							</template>
 							<template v-else> Fără runde </template>
 						</LocalScope>
 					</div>
 				</div>
-				<RouterLink :to="`/${game.id}`" class="btn btn-square btn-ghost">
+				<RouterLink
+					:to="`/${game.id}`"
+					class="btn btn-square btn-ghost"
+				>
 					<PlayIcon class="size-6" />
 				</RouterLink>
-				<button class="btn btn-square btn-ghost" @click="deleteGame(game.id)">
+				<button
+					class="btn btn-square btn-ghost"
+					@click="deleteGame(game.id)"
+				>
 					<TrashIcon class="size-6" />
 				</button>
 			</li>

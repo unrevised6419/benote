@@ -133,9 +133,15 @@ function resetGame() {
 				</thead>
 				<tbody>
 					<tr v-if="game.rounds.length === 0">
-						<td :colspan="scores.length" class="text-center">Fără runde</td>
+						<td :colspan="scores.length" class="text-center">
+							Fără runde
+						</td>
 					</tr>
-					<tr v-for="round in game.rounds" :key="round.id" class="list-row">
+					<tr
+						v-for="round in game.rounds"
+						:key="round.id"
+						class="list-row"
+					>
 						<td v-for="score in round.scores">
 							<Cell :score="score" />
 						</td>
@@ -147,7 +153,9 @@ function resetGame() {
 							<div class="flex items-center justify-between">
 								<div class="inline-flex divide-x">
 									<span
-										v-for="score in game.rounds[game.rounds.length - 1]?.scores"
+										v-for="score in game.rounds[
+											game.rounds.length - 1
+										]?.scores"
 										class="px-2"
 									>
 										{{ score.total }}
@@ -156,7 +164,12 @@ function resetGame() {
 
 								<button
 									type="button"
-									@click="removeRound(game.rounds[game.rounds.length - 1]?.id)"
+									@click="
+										removeRound(
+											game.rounds[game.rounds.length - 1]
+												?.id,
+										)
+									"
 									class="btn btn-xs"
 									:disabled="game.rounds.length === 0"
 								>
