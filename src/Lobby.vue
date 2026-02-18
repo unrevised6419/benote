@@ -6,7 +6,7 @@ import { computed } from "vue";
 import { LocalScope } from "@all1ndev/vue-local-scope";
 import { PlayIcon, TrashIcon } from "@heroicons/vue/24/outline";
 
-const gamesRecord = useLocalStorage(key("games"), {} as Record<string, Game>);
+const gamesRecord = useLocalStorage<Record<string, Game>>(key("games"), {});
 const games = computed(() => Object.values(gamesRecord.value).toReversed());
 
 function deleteGame(gameId: string) {

@@ -6,6 +6,7 @@ import {
 	id,
 	type Game,
 	type Team,
+	type Player,
 } from "../utils";
 import Cell from "./Cell.vue";
 import { computed, ref, toRef } from "vue";
@@ -19,11 +20,21 @@ const lastRound = computed(
 );
 const scores = ref<string[]>(Array(game.value.teams.length).fill(""));
 
-const nextToDealCards = computed<Team>(() => {
+const nextToDealCards = computed(() => {
 	const roundsCount = game.value.rounds.length;
 	const teamsCount = game.value.teams.length;
-	const team = roundsCount % teamsCount;
-	return game.value.teams[team] as Team;
+
+	const teamIndex = roundsCount % teamsCount;
+	const team = game.value.teams[teamIndex] as Team;
+
+	const playerIndex =
+		Math.floor(roundsCount / teamsCount) % team.players.length;
+	const player = team.players[playerIndex] as Player;
+
+	return {
+		team,
+		player,
+	};
 });
 
 function addScores() {
@@ -223,7 +234,9 @@ function handleNumber(value: number) {
 							:class="{
 								'border-b-primary border-b':
 									roundIndex !== game.rounds.length - 1 &&
-									(roundIndex + 1) % game.playersCount === 0,
+									(roundIndex + 1) %
+										game.totalPlayersCount ===
+										0,
 							}"
 						>
 							<Cell
@@ -268,8 +281,14 @@ function handleNumber(value: number) {
 			</table>
 		</div>
 
-		<div class="text-info text-xs">
-			Bate Carțile: {{ nextToDealCards.name }}
+		<div class="text-xs font-semibold">
+			<span class="text-base-content/50">Bate Cărțile: </span>
+			<span class="italic">
+				<span>{{ nextToDealCards.team.name }}</span>
+				<span v-if="game.totalPlayersCount / game.teams.length !== 1">
+					- {{ nextToDealCards.player.name }}
+				</span>
+			</span>
 		</div>
 
 		<Keyboard
