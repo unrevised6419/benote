@@ -1,16 +1,13 @@
 <script setup lang="ts">
-import { useLocalStorage } from "@vueuse/core";
-import { key, type Score, isBolt, isBoltScore, id, type Game } from "../utils";
+import { type Score, isBolt, isBoltScore, id, type Game } from "../utils";
 import Cell from "./Cell.vue";
 import { computed, ref, toRef } from "vue";
 import { RouterLink } from "vue-router";
+import Keyboard from "./Keyboard.vue";
 
 const props = defineProps<{ game: Game }>();
 const game = toRef(props, "game");
 const scores = ref<string[]>(Array(game.value.players.length).fill(""));
-const textKeyboard = useLocalStorage<boolean>(key("textKeyboard"), false);
-const inputMode = computed(() => (textKeyboard.value ? "text" : "numeric"));
-const eggMode = ref(false);
 
 const nextToDealCards = computed(() => {
 	const roundsCount = game.value.rounds.length;
@@ -19,11 +16,7 @@ const nextToDealCards = computed(() => {
 	return game.value.players[player];
 });
 
-function addScores(event: Event) {
-	if (eggMode.value) {
-		alert("Ouăle nu sunt încă implementat încă");
-	}
-
+function addScores() {
 	const boltCount = scores.value.filter(isBolt).length;
 
 	if (boltCount > 1) {
@@ -98,8 +91,6 @@ function addScores(event: Event) {
 	];
 
 	scores.value = Array(game.value.players.length).fill("");
-	eggMode.value = false;
-	(event.target as HTMLFormElement).reset();
 }
 
 function removeRound(id: string | undefined) {
@@ -112,6 +103,84 @@ function resetGame() {
 	if (!confirm("Sigur?")) return;
 	game.value.rounds = [];
 	scores.value = Array(game.value.players.length).fill("");
+}
+
+const focusedPlayer = ref<number>();
+
+function handleAdd() {
+	if (scores.value.some((score) => score === "")) {
+		alert("Toți jucătorii trebuie să aibă un scor");
+		return;
+	}
+
+	addScores();
+	scores.value = Array(game.value.players.length).fill("");
+	focusedPlayer.value = undefined;
+}
+
+function handleNext() {
+	if (focusedPlayer.value === undefined) return;
+	const nextPlayer = (focusedPlayer.value + 1) % game.value.players.length;
+	focusedPlayer.value = nextPlayer;
+}
+
+function handleBack() {
+	if (focusedPlayer.value === undefined) return;
+	const previousPlayer =
+		(focusedPlayer.value - 1 + game.value.players.length) %
+		game.value.players.length;
+	focusedPlayer.value = previousPlayer;
+}
+
+function handleClear() {
+	if (focusedPlayer.value === undefined) return;
+	scores.value[focusedPlayer.value] = "";
+}
+
+function handleBolt() {
+	if (focusedPlayer.value === undefined) return;
+	scores.value[focusedPlayer.value] = "Bolt";
+}
+
+function handleMinus() {
+	if (focusedPlayer.value === undefined) return;
+	scores.value[focusedPlayer.value] = "-10";
+}
+
+function handleNumber(value: number) {
+	if (focusedPlayer.value === undefined) return;
+
+	let score = scores.value[focusedPlayer.value] || "";
+
+	if (isBolt(score) || score === "-10" || score[0] === "0") {
+		score = "";
+	}
+
+	if (value === 0 && score === "") {
+		return;
+	}
+
+	const newValue = score + value;
+
+	if (newValue.length > 2) {
+		alert("Scor prea mare");
+		return;
+	}
+
+	scores.value[focusedPlayer.value] = newValue;
+}
+
+function handleKeyboard() {
+	if (focusedPlayer.value !== undefined) {
+		focusedPlayer.value = undefined;
+		return;
+	}
+
+	focusedPlayer.value = 0;
+	document.scrollingElement?.scrollTo({
+		top: document.scrollingElement.scrollHeight,
+		behavior: "smooth",
+	});
 }
 </script>
 
@@ -138,30 +207,20 @@ function resetGame() {
 						</td>
 					</tr>
 					<tr
-						v-for="round in game.rounds"
+						v-for="(round, roundIndex) in game.rounds"
 						:key="round.id"
 						class="list-row"
 					>
 						<td v-for="score in round.scores">
 							<Cell :score="score" />
 						</td>
-					</tr>
-				</tbody>
-				<tfoot class="bg-base-200 text-xs">
-					<tr>
-						<th :colspan="scores.length">
-							<div class="flex items-center justify-between">
-								<div class="inline-flex divide-x">
-									<span
-										v-for="score in game.rounds[
-											game.rounds.length - 1
-										]?.scores"
-										class="px-2"
-									>
-										{{ score.total }}
-									</span>
-								</div>
-
+						<td
+							v-if="roundIndex === game.rounds.length - 1"
+							class="relative w-0 p-0"
+						>
+							<div
+								class="absolute inset-y-0 right-0 content-center px-2"
+							>
 								<button
 									type="button"
 									@click="
@@ -170,10 +229,62 @@ function resetGame() {
 												?.id,
 										)
 									"
-									class="btn btn-xs"
+									class="btn btn-xs btn-ghost"
 									:disabled="game.rounds.length === 0"
 								>
-									Șterge ultima rundă
+									&times;
+								</button>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+
+				<tfoot class="bg-base-200 text-xs">
+					<tr>
+						<th
+							v-for="(player, index) in game.players"
+							:class="{
+								'text-info font-medium':
+									game.players[index] === nextToDealCards,
+								'outline-2 outline-red-500':
+									focusedPlayer === index,
+							}"
+						>
+							<template v-if="scores[index]">
+								{{ player }}: {{ scores[index] }}
+							</template>
+							<template v-else>
+								{{ player }}
+							</template>
+						</th>
+					</tr>
+					<tr>
+						<th
+							:colspan="scores.length"
+							class="border-base-300 border-t"
+						>
+							<div class="flex items-center justify-between">
+								<div class="inline-flex divide-x">
+									<span
+										v-for="score in game.rounds[
+											game.rounds.length - 1
+										]?.scores ?? [
+											undefined,
+											undefined,
+											undefined,
+										]"
+										class="px-2"
+									>
+										{{ score?.total ?? "0" }}
+									</span>
+								</div>
+
+								<button
+									type="button"
+									@click="handleKeyboard"
+									class="btn btn-xs"
+								>
+									Tastatură
 								</button>
 							</div>
 						</th>
@@ -182,62 +293,16 @@ function resetGame() {
 			</table>
 		</div>
 
-		<div class="flex items-center justify-between">
-			<label class="inline-flex gap-1 text-sm">
-				<input
-					type="checkbox"
-					v-model="textKeyboard"
-					class="toggle toggle-sm"
-				/>
-				<kbd v-if="textKeyboard" class="kbd kbd-sm">ABC</kbd>
-				<kbd v-else class="kbd kbd-sm">123</kbd>
-			</label>
-
-			<div
-				v-if="game.players.length === 2"
-				class="ml-auto flex items-center gap-1"
-			>
-				<span class="badge badge-sm">
-					{{ game.collected }}
-				</span>
-				<label class="badge badge-sm cursor-pointer select-none">
-					<input type="checkbox" v-model="eggMode" hidden />
-					{{ eggMode ? "🍳🍳🍳" : "🥚🥚🥚" }}
-				</label>
-			</div>
+		<div v-if="focusedPlayer !== undefined">
+			<Keyboard
+				@add="handleAdd"
+				@next="handleNext"
+				@back="handleBack"
+				@clear="handleClear"
+				@bolt="handleBolt"
+				@minus="handleMinus"
+				@number="handleNumber"
+			/>
 		</div>
-
-		<form @submit.prevent="addScores" class="grid gap-4">
-			<fieldset class="fieldset py-0">
-				<div class="join">
-					<label
-						v-for="(_, index) in scores"
-						class="input validator join-item focus-within:z-10"
-					>
-						<input
-							v-model="scores[index]"
-							required
-							:placeholder="
-								game.players[index] === nextToDealCards
-									? `Bate: ${nextToDealCards}`
-									: game.players[index]
-							"
-							:inputmode="inputMode"
-							:class="{
-								'placeholder:text-info placeholder:font-medium':
-									game.players[index] === nextToDealCards,
-							}"
-						/>
-					</label>
-				</div>
-				<p class="fieldset-label">
-					<kbd class="kbd kbd-xs">b</kbd>
-					<kbd class="kbd kbd-xs">bt</kbd>
-					sau <kbd class="kbd kbd-xs">bolt</kbd> pentru bolt
-				</p>
-			</fieldset>
-
-			<button type="submit" class="btn block w-full">Adaugă</button>
-		</form>
 	</div>
 </template>
