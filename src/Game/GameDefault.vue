@@ -187,10 +187,6 @@ function handleNumber(value: number) {
 		score = "";
 	}
 
-	if (value === 0 && score === "") {
-		return;
-	}
-
 	const newValue = score + value;
 
 	if (newValue.length > 2) {
