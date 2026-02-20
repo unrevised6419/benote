@@ -285,22 +285,26 @@ onMounted(() => {
 							</td>
 						</tr>
 					</tbody>
-
-					<tfoot class="bg-base-200 text-xs">
-						<tr>
-							<th
-								v-for="(team, index) in game.teams"
-								class="px-2 py-1"
-								:class="{
-									'outline-2': focusedPlayer === index,
-								}"
-							>
-								<div class="truncate">{{ team.name }}</div>
-								<div>{{ scores[index] || "n/a" }}</div>
-							</th>
-						</tr>
-					</tfoot>
 				</table>
+			</div>
+
+			<div
+				:style="{
+					'--teams': `repeat(${game.teams.length}, minmax(0, 1fr))`,
+				}"
+				class="bg-base-200 grid grid-cols-(--teams) gap-1.5 text-xs"
+			>
+				<button
+					v-for="(team, index) in game.teams"
+					class="btn"
+					:class="{ 'outline-2': focusedPlayer === index }"
+					@click="focusedPlayer = index"
+				>
+					<div class="leading-4">
+						<div class="truncate">{{ team.name }}</div>
+						<div>{{ scores[index] || "n/a" }}</div>
+					</div>
+				</button>
 			</div>
 
 			<div class="text-xs font-semibold">
