@@ -1,25 +1,12 @@
-export type ScoreNormal = {
-	type: "normal";
+export type Score = {
+	type: "normal" | "bolt";
 	total: number;
 	delta: number;
+	boltCount: number;
+	// hangTotal: number;
 };
-
-export type ScoreBolt = {
-	type: "bolt";
-	total: number;
-	delta: 1 | 2 | 3;
-};
-
-export type ScoreEgg = {
-	type: "egg";
-	total: number;
-	delta: number;
-};
-
-export type Score = ScoreNormal | ScoreBolt | ScoreEgg;
 
 export type Round = {
-	id: string;
 	scores: ReadonlyArray<Score>;
 };
 
@@ -42,19 +29,16 @@ export type Game = {
 	rounds: ReadonlyArray<Round>;
 };
 
-export const key = (id: string) => `wolverine1006:${id}`;
+export const key = (id: string) => `wolverine1007:${id}`;
 
 export const formatter = Intl.NumberFormat(navigator.languages, {
 	signDisplay: "always",
 });
 
-export function isBolt(value: string): boolean {
+export function isBolt(value: string | undefined): boolean {
+	if (value == null) return false;
 	value = value.toLowerCase();
 	return ["bolt", "b", "bt"].includes(value);
-}
-
-export function isBoltScore(score: Score): score is ScoreBolt {
-	return score.type === "bolt";
 }
 
 export const id = () => {
@@ -66,4 +50,8 @@ export function firstOrSelf<T>(
 ): T | undefined {
 	if (value == null) return;
 	return Array.isArray(value) ? value.at(0) : value;
+}
+
+export function wrap(val: number, min: number, max: number): number {
+	return ((((val - min) % (max - min)) + (max - min)) % (max - min)) + min;
 }

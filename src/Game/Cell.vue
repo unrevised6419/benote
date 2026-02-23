@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatter, isBoltScore, type Score } from "../utils";
+import { formatter, type Score } from "../utils";
 
 defineProps<{
 	score: Score;
@@ -9,10 +9,13 @@ defineProps<{
 
 <template>
 	<div class="flex items-center justify-center gap-1">
-		<template v-if="isBoltScore(score)">
+		<template v-if="score.type === 'bolt'">
 			<span :class="{ 'font-bold': bold }">{{ score.total }}</span>
-			<span v-if="score.delta !== 3" class="badge badge-warning badge-xs">
-				&times;{{ score.delta }}
+			<span
+				v-if="score.boltCount !== 3"
+				class="badge badge-warning badge-xs"
+			>
+				&times;{{ score.boltCount }}
 			</span>
 			<span v-else class="badge badge-error badge-xs">-10</span>
 		</template>
