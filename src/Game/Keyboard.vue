@@ -8,69 +8,112 @@ import "simple-keyboard/build/css/index.css";
 import { onMounted, onUnmounted, shallowRef, useTemplateRef } from "vue";
 
 const emits = defineEmits<{
-	add: [];
-	next: [];
+	hang: [];
 	clear: [];
 	bolt: [];
 	minus: [];
 	number: [num: number];
-	back: [];
+	add: [];
+	next: [];
 }>();
 
 const keyboardRef = useTemplateRef("keyboard");
 const keyboard = shallowRef<Keyboard>();
 
-const numpadDisplay: Record<string, string> = {
-	"{numpad0}": "0",
-	"{numpad1}": "1",
-	"{numpad2}": "2",
-	"{numpad3}": "3",
-	"{numpad4}": "4",
-	"{numpad5}": "5",
-	"{numpad6}": "6",
-	"{numpad7}": "7",
-	"{numpad8}": "8",
-	"{numpad9}": "9",
+type NumCommand = (typeof numCommands)[number];
+const numCommands = [
+	"{num1}",
+	"{num2}",
+	"{num3}",
+	"{num4}",
+	"{num5}",
+	"{num6}",
+	"{num7}",
+	"{num8}",
+	"{num9}",
+	"{num0}",
+] as const;
+
+type Command = (typeof commands)[number];
+const commands = [
+	...numCommands,
+	"{hang}",
+	"{bolt}",
+	"{minus}",
+	"{clear}",
+	"{add}",
+	"{next}",
+] as const;
+
+const numCommandDisplay: Record<NumCommand, string> = {
+	"{num0}": "0",
+	"{num1}": "1",
+	"{num2}": "2",
+	"{num3}": "3",
+	"{num4}": "4",
+	"{num5}": "5",
+	"{num6}": "6",
+	"{num7}": "7",
+	"{num8}": "8",
+	"{num9}": "9",
 };
 
+const commandDisplay: Record<Command, string> = {
+	...numCommandDisplay,
+	"{hang}": "Ouă",
+	"{clear}": "Curăță",
+	"{bolt}": "Bolt",
+	"{minus}": "Minus",
+	"{add}": "Adaugă",
+	"{next}": "Următorul",
+};
+
+const layout: ReadonlyArray<ReadonlyArray<Command>> = [
+	numCommands,
+	["{hang}", "{bolt}", "{minus}"],
+	["{clear}", "{next}", "{add}"],
+];
+
 function handleKeyPress(button: string) {
-	if (button === "{add}") {
-		emits("add");
+	const command = button as Command;
+
+	if (command === "{hang}") {
+		emits("hang");
 		return;
 	}
 
-	if (button === "{next}") {
-		emits("next");
-		return;
-	}
-
-	if (button === "{back}") {
-		emits("back");
-		return;
-	}
-
-	if (button === "{clear}") {
+	if (command === "{clear}") {
 		emits("clear");
 		return;
 	}
 
-	if (button === "{bolt}") {
+	if (command === "{bolt}") {
 		emits("bolt");
 		return;
 	}
 
-	if (button === "{minus}") {
+	if (command === "{minus}") {
 		emits("minus");
 		return;
 	}
 
-	const buttonValue = numpadDisplay[button];
+	if (command === "{add}") {
+		emits("add");
+		return;
+	}
+
+	if (command === "{next}") {
+		emits("next");
+		return;
+	}
+
+	const buttonValue = numCommandDisplay[command];
 
 	if (!buttonValue) {
 		return;
 	}
 
-	const theNumber = parseInt(buttonValue, 10);
+	const theNumber = Number.parseInt(buttonValue, 10);
 
 	if (Number.isNaN(theNumber)) {
 		return;
@@ -84,22 +127,8 @@ onMounted(() => {
 
 	keyboard.value = new Keyboard(keyboardRef.value, {
 		onKeyPress: handleKeyPress,
-		layout: {
-			default: [
-				"{numpad1} {numpad2} {numpad3} {numpad4} {numpad5} {numpad6} {numpad7} {numpad8} {numpad9}",
-				"{bolt} {numpad0} {minus}",
-				"{clear} {back} {next} {add}",
-			],
-		},
-		display: {
-			"{add}": "➕",
-			"{clear}": "🗑️",
-			"{bolt}": "Bolt",
-			"{minus}": "-10",
-			"{next}": "⏭️",
-			"{back}": "⏮️",
-			...numpadDisplay,
-		},
+		layout: { default: layout.map((row) => row.join(" ")) },
+		display: commandDisplay,
 		theme: "hg-theme-default hg-layout-numeric",
 	});
 });

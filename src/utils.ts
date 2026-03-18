@@ -1,13 +1,16 @@
 export type Score = {
-	type: "normal" | "bolt";
+	type: "normal" | "bolt" | "hang" | "hang-win";
 	total: number;
 	delta: number;
 	boltCount: number;
-	// hangTotal: number;
 };
 
 export type Round = {
 	scores: ReadonlyArray<Score>;
+	roundTotal: number;
+	hangTotal: number;
+	createdDate: string;
+	duration: number;
 };
 
 export interface Team {
@@ -29,17 +32,11 @@ export type Game = {
 	rounds: ReadonlyArray<Round>;
 };
 
-export const key = (id: string) => `wolverine1007:${id}`;
+export const key = (id: string) => `wolverine1008:${id}`;
 
 export const formatter = Intl.NumberFormat(navigator.languages, {
 	signDisplay: "always",
 });
-
-export function isBolt(value: string | undefined): boolean {
-	if (value == null) return false;
-	value = value.toLowerCase();
-	return ["bolt", "b", "bt"].includes(value);
-}
 
 export const id = () => {
 	return Math.random().toString(36).slice(2);
@@ -54,4 +51,13 @@ export function firstOrSelf<T>(
 
 export function wrap(val: number, min: number, max: number): number {
 	return ((((val - min) % (max - min)) + (max - min)) % (max - min)) + min;
+}
+
+export function formatDuration(duration: number): string {
+	if (duration < 1000 * 60) {
+		const seconds = Math.ceil(duration / 1000);
+		return `${seconds}s`;
+	} else {
+		return `${Math.ceil(duration / 1000 / 60)}m`;
+	}
 }

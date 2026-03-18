@@ -19,6 +19,18 @@ defineProps<{
 			</span>
 			<span v-else class="badge badge-error badge-xs">-10</span>
 		</template>
+		<template v-else-if="score.type === 'hang'">
+			<span :class="{ 'font-bold': bold }">{{ score.total }}</span>
+			<span class="badge badge-xs badge-dash">
+				{{ formatter.format(score.delta) }}
+			</span>
+		</template>
+		<template v-else-if="score.type === 'hang-win'">
+			<span :class="{ 'font-bold': bold }">{{ score.total }}</span>
+			<span class="badge badge-xs badge-dash badge-success">
+				{{ formatter.format(score.delta) }}
+			</span>
+		</template>
 		<template v-else>
 			<span :class="{ 'font-bold': bold }">{{ score.total }}</span>
 			<span
