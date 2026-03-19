@@ -13,10 +13,19 @@ function deleteGame(gameId: string) {
 	if (!confirm("Sigur?")) return;
 	delete gamesRecord.value[gameId];
 }
+
+const isOldDomain = window.location.hostname === "benote.luca.md";
 </script>
 <template>
 	<div class="grid gap-4 p-4">
-		<RouterLink to="/create" class="btn w-full">Crează Joc Nou</RouterLink>
+		<div v-if="isOldDomain">
+			Folosește
+			<a href="https://benote.all1n.dev" class="link">benote.all1n.dev</a>
+			în loc de benote.luca.md
+		</div>
+		<RouterLink v-else to="/create" class="btn w-full">
+			Crează Joc Nou
+		</RouterLink>
 
 		<ul class="list bg-base-100 rounded-box shadow-md">
 			<li class="p-4 pb-2 text-xs tracking-wide opacity-60">
