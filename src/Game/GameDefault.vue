@@ -266,7 +266,7 @@ function navigateToEnd() {
 			</div>
 
 			<div class="border-base-content/5 bg-base-100 rounded border">
-				<table class="table table-fixed">
+				<table class="table table-fixed text-center">
 					<thead class="bg-base-200 text-xs">
 						<tr>
 							<th v-for="team in game.teams" class="truncate">
